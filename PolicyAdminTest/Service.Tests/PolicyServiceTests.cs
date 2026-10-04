@@ -96,7 +96,7 @@ namespace PolicyAdmin.Tests.Services
         {
             _context.Quotes.Add(new Quote
             {
-                QuoteId = "Q003",
+                QuoteId = "Q004",
                 Status = "Approved"
             });
 
