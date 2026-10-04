@@ -51,28 +51,41 @@ namespace PolicyAdmin.API.Services
             return policy == null ? null : MapToDto(policy);
         }
 
-        public async Task<PolicyDto> CreatePolicyAsync(CreatePolicyDto dto)
+    public async Task<PolicyDto> CreatePolicyAsync(CreatePolicyDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.QuoteId))
                 throw new ArgumentException("Quote ID is required.");
 
-            // LINQ Demonstration: Any to validate quote availability and approval
-            var quote = await _context.Quotes.SingleOrDefaultAsync(q => q.QuoteId == dto.QuoteId);
+            // Validate quote
+            var quote = await _context.Quotes
+            .SingleOrDefaultAsync(q => q.QuoteId == dto.QuoteId);
+
             if (quote == null)
                 throw new KeyNotFoundException($"Quote '{dto.QuoteId}' was not found.");
 
             if (quote.Status != "Approved")
                 throw new InvalidOperationException($"Quote '{dto.QuoteId}' is not eligible for policy creation (Status: {quote.Status}).");
 
-            // LINQ Demonstration: Any to validate duplicate Policy Number
-            var isDuplicatePolicyNum = await _context.Policies.AnyAsync(p => p.PolicyNumber == dto.PolicyNumber);
-            if (isDuplicatePolicyNum)
-                throw new InvalidOperationException($"Policy Number '{dto.PolicyNumber}' already exists.");
+            // Check duplicate policy number
+            var isDuplicatePolicyNum = await _context.Policies
+                .AnyAsync(p => p.PolicyNumber == dto.PolicyNumber);
 
-            if (dto.EndDate <= dto.StartDate)
+            if (isDuplicatePolicyNum)
+                throw new InvalidOperationException(
+                    $"Policy Number '{dto.PolicyNumber}' already exists.");
+
+            
+            var endDate = dto.EndDate;
+
+            if (endDate == default(DateTime))
+            {
+                endDate = dto.StartDate.AddYears(1);
+            }
+
+            if (endDate <= dto.StartDate)
                 throw new ArgumentException("Policy End Date must be after Policy Start Date.");
 
-            // Create new policy entity
+           
             var policy = new Policy
             {
                 PolicyNumber = dto.PolicyNumber,
@@ -87,22 +100,33 @@ namespace PolicyAdmin.API.Services
                 Breed = quote.Breed,
                 Age = quote.Age,
                 StartDate = dto.StartDate,
-                EndDate = dto.EndDate,
-                Premium = dto.AnnualPremium > 0 ? dto.AnnualPremium : quote.AnnualPremium,
+                EndDate = endDate,
+                Premium = dto.AnnualPremium > 0
+                            ? dto.AnnualPremium
+                            : quote.AnnualPremium,
                 PaymentFrequency = dto.PaymentFrequency,
-                Status = DetermineStatus(dto.StartDate, dto.EndDate, isCancelled: false)
+                Status = DetermineStatus(
+                            dto.StartDate,
+                            endDate,
+                            isCancelled: false)
             };
 
-            // Add Coverage
+            
             policy.PolicyCoverages.Add(new PolicyCoverage
             {
                 CoverageType = dto.CoverageType,
-                AnnualLimit = dto.AnnualLimit > 0 ? dto.AnnualLimit : quote.AnnualLimit,
-                Deductible = dto.Deductible > 0 ? dto.Deductible : quote.Deductible,
-                ReimbursementPct = dto.ReimbursementPct > 0 ? dto.ReimbursementPct : quote.ReimbursementPct
+                AnnualLimit = dto.AnnualLimit > 0
+                                ? dto.AnnualLimit
+                                : quote.AnnualLimit,
+                Deductible = dto.Deductible > 0
+                                ? dto.Deductible
+                                : quote.Deductible,
+                ReimbursementPct = dto.ReimbursementPct > 0
+                                ? dto.ReimbursementPct
+                                : quote.ReimbursementPct
             });
 
-            // Add Creation Transaction
+            
             policy.PolicyTransactions.Add(new PolicyTransaction
             {
                 TransactionType = "Created",
@@ -110,10 +134,11 @@ namespace PolicyAdmin.API.Services
                 Notes = $"Policy created from approved quote {quote.QuoteId}"
             });
 
-            // Mark Quote as Converted
+            
             quote.Status = "Converted";
 
             _context.Policies.Add(policy);
+
             await _context.SaveChangesAsync();
 
             return MapToDto(policy);
@@ -123,7 +148,7 @@ namespace PolicyAdmin.API.Services
         {
             await RefreshPolicyStatusesAsync();
 
-            // LINQ Demonstration: SingleOrDefault
+           
             var policy = await _context.Policies
                 .Include(p => p.PolicyCoverages)
                 .Include(p => p.PolicyTransactions)
@@ -148,7 +173,7 @@ namespace PolicyAdmin.API.Services
             var previousPremium = policy.Premium;
             var newPremium = dto.ProposedPremium > 0 ? dto.ProposedPremium : previousPremium;
 
-            // Audit record in PolicyRenewals (does NOT overwrite previous renewals)
+            
             var renewalRecord = new PolicyRenewal
             {
                 PolicyId = policy.PolicyId,
@@ -162,7 +187,7 @@ namespace PolicyAdmin.API.Services
 
             policy.PolicyRenewals.Add(renewalRecord);
             
-            // Audit record in PolicyTransactions
+            
             policy.PolicyTransactions.Add(new PolicyTransaction
             {
                 PolicyId = policy.PolicyId,
@@ -183,7 +208,7 @@ namespace PolicyAdmin.API.Services
 
         public async Task<PolicyDto> CancelPolicyAsync(string policyNumber, CancelPolicyDto dto)
         {
-            // LINQ Demonstration: SingleOrDefault
+            
             var policy = await _context.Policies
                 .Include(p => p.PolicyCoverages)
                 .Include(p => p.PolicyTransactions)
@@ -198,6 +223,9 @@ namespace PolicyAdmin.API.Services
 
             if (dto.CancellationDate < policy.StartDate)
                 throw new ArgumentException($"Cancellation date ({dto.CancellationDate:yyyy-MM-dd}) cannot be before Policy Start Date ({policy.StartDate:yyyy-MM-dd}).");
+
+            if (string.IsNullOrWhiteSpace(dto.Reason))
+                throw new ArgumentException("Cancellation reason is required.");
 
             policy.Status = "Cancelled";
 
@@ -336,10 +364,9 @@ namespace PolicyAdmin.API.Services
         {
             if (isCancelled) return "Cancelled";
             var today = DateTime.UtcNow.Date;
-
-            if (startDate > today) return "Pending";
             if (endDate < today) return "Expired";
             if ((endDate - today).Days <= 30) return "Expiring Soon";
+            if (startDate > today) return "Pending";        
             return "Active";
         }
 
