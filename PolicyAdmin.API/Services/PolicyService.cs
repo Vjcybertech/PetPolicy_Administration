@@ -15,25 +15,38 @@ namespace PolicyAdmin.API.Services
             _context = context;
         }
 
-        public async Task<List<PolicyDto>> GetAllPoliciesAsync(string? status = null)
+        public async Task<List<PolicyDto>> GetAllPoliciesAsync(string? status = null,int pageNumber = 1, int pageSize = 10)
         {
-            // LINQ Demonstration: Include / ThenInclude
             var query = _context.Policies
                 .Include(p => p.PolicyCoverages)
                 .Include(p => p.PolicyTransactions)
                 .Include(p => p.PolicyRenewals)
                 .AsQueryable();
 
-            // Recalculate dynamic statuses prior to filtering
             await RefreshPolicyStatusesAsync();
 
-            // LINQ Demonstration: Where
             if (!string.IsNullOrWhiteSpace(status))
             {
-                query = query.Where(p => p.Status.ToLower() == status.ToLower());
+                query = query.Where(p =>
+                    p.Status.ToLower() == status.ToLower());
             }
-            
-            var policies = await query.OrderByDescending(p => p.PolicyId).ToListAsync();
+
+            // Pagination validation
+            if (pageNumber < 1)
+                pageNumber = 1;
+
+            if (pageSize < 1)
+                pageSize = 10;
+
+            if (pageSize > 100)
+                pageSize = 100;
+
+            var policies = await query
+                .OrderByDescending(p => p.PolicyId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
             return policies.Select(MapToDto).ToList();
         }
 
@@ -51,7 +64,7 @@ namespace PolicyAdmin.API.Services
             return policy == null ? null : MapToDto(policy);
         }
 
-    public async Task<PolicyDto> CreatePolicyAsync(CreatePolicyDto dto)
+        public async Task<PolicyDto> CreatePolicyAsync(CreatePolicyDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.QuoteId))
                 throw new ArgumentException("Quote ID is required.");

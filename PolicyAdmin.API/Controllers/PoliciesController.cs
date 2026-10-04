@@ -16,10 +16,14 @@ namespace PolicyAdmin.API.Controllers
         }
 
         
-        [HttpGet]
-        public async Task<ActionResult<List<PolicyDto>>> GetPolicies([FromQuery] string? status)
+       [HttpGet]
+        public async Task<ActionResult<List<PolicyDto>>> GetPolicies(
+            [FromQuery] string? status,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var policies = await _repo.GetAllPoliciesAsync(status);
+            var policies = await _repo.GetAllPoliciesAsync(status,pageNumber,pageSize);
+
             return Ok(policies);
         }
 

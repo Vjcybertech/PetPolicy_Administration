@@ -4,7 +4,7 @@ namespace PolicyAdmin.API.Services
 {
     public interface IPolicyService
     {
-        Task<List<PolicyDto>> GetAllPoliciesAsync(string? status = null);
+        Task<List<PolicyDto>> GetAllPoliciesAsync(string? status = null, int pageNumber = 1, int pageSize = 10);
         Task<PolicyDto?> GetPolicyByNumberAsync(string policyNumber);
         Task<PolicyDto> CreatePolicyAsync(CreatePolicyDto dto);
         Task<PolicyDto> RenewPolicyAsync(string policyNumber, RenewPolicyDto dto);

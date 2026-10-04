@@ -15,9 +15,9 @@ namespace PolicyAdmin.API.Repository
             _service=service;
         }
 
-       public Task<List<PolicyDto>> GetAllPoliciesAsync(string? status = null)
+       public Task<List<PolicyDto>> GetAllPoliciesAsync(string? status = null,int pageNumber = 1, int pageSize = 10)
         {
-            return _service.GetAllPoliciesAsync(status);
+            return _service.GetAllPoliciesAsync(status,pageNumber,pageSize);
         }
 
        public  Task<PolicyDto?> GetPolicyByNumberAsync(string policyNumber)
