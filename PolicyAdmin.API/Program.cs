@@ -42,7 +42,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Policy Administration Web API",
         Version = "v1",
-        Description = "ASP.NET Core Web API for Pet Insurance Policy Administration, LINQ Operations & Excel Import/Export"
+        Description = "ASP.NET Core Web API for Pet Insurance Policy Administration"
     });
 });
 
@@ -61,7 +61,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Policy Admin API v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Policy Admin API");
     c.RoutePrefix = string.Empty;
     c.DefaultModelsExpandDepth(-1);
 });

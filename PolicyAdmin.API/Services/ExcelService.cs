@@ -148,42 +148,106 @@ namespace PolicyAdmin.API.Services
         public async Task<int> ImportPoliciesFromExcelAsync(Stream excelStream)
         {
             using var workbook = new XLWorkbook(excelStream);
+
             var wsPolicies = workbook.Worksheet("Policies");
 
             if (wsPolicies == null)
-                throw new InvalidOperationException("Workbook does not contain a 'Policies' sheet.");
+                throw new InvalidOperationException(
+                    "Workbook does not contain a 'Policies' sheet.");
 
-            var rows = wsPolicies.RowsUsed().Skip(1); // Skip Header
+            var rows = wsPolicies.RowsUsed().Skip(1);
+
             int importedCount = 0;
 
             foreach (var row in rows)
             {
-                var polNum = row.Cell(2).GetString();
-                if (string.IsNullOrWhiteSpace(polNum)) continue;
+                var policyNumber = row.Cell(2).GetString();
 
-                // Check if policy exists
-                var existing = await _context.Policies.SingleOrDefaultAsync(p => p.PolicyNumber == polNum);
-                if (existing != null) continue; // Skip existing
+                if (string.IsNullOrWhiteSpace(policyNumber))
+                    continue;
+
+                var quoteId = row.Cell(3).GetString();
+
+                if (string.IsNullOrWhiteSpace(quoteId))
+                {
+                    throw new InvalidOperationException(
+                        $"Policy '{policyNumber}' does not contain a Quote Id.");
+                }
+
+                // Check Quote Exists
+                var quote = await _context.Quotes
+                    .SingleOrDefaultAsync(q => q.QuoteId == quoteId);
+
+                if (quote == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Quote '{quoteId}' was not found.");
+                }
+
+                // Check Quote Status
+                if (!string.Equals(
+                        quote.Status,
+                        "Approved",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        $"Quote '{quoteId}' is not approved. Current status: {quote.Status}");
+                }
+
+                // Check whether QuoteId is already used in Policies table
+                var quoteAlreadyConverted = await _context.Policies
+                    .AnyAsync(p => p.QuoteId == quoteId);
+
+                if (quoteAlreadyConverted)
+                {
+                    throw new InvalidOperationException(
+                        $"Quote '{quoteId}' has already been converted into a policy.");
+                }
+
+                // Check duplicate Policy Number
+                var existingPolicy = await _context.Policies
+                    .SingleOrDefaultAsync(p => p.PolicyNumber == policyNumber);
+
+                if (existingPolicy != null)
+                {
+                    throw new InvalidOperationException(
+                        $"Policy Number '{policyNumber}' already exists.");
+                }
 
                 var policy = new Policy
                 {
-                    PolicyNumber = polNum,
-                    QuoteId = row.Cell(3).GetString(),
+                    PolicyNumber = policyNumber,
+                    QuoteId = quoteId,
                     CustomerId = row.Cell(4).GetString(),
                     CustomerName = row.Cell(5).GetString(),
                     CustomerEmail = row.Cell(6).GetString(),
                     PetId = row.Cell(7).GetString(),
                     PetName = row.Cell(8).GetString(),
                     PetType = row.Cell(9).GetString(),
-                    StartDate = DateTime.TryParse(row.Cell(10).GetString(), out var sd) ? sd : DateTime.UtcNow.Date,
-                    EndDate = DateTime.TryParse(row.Cell(11).GetString(), out var ed) ? ed : DateTime.UtcNow.Date.AddYears(1),
-                    Premium = decimal.TryParse(row.Cell(12).GetString(), out var prem) ? prem : 500m,
-                    PaymentFrequency = row.Cell(13).GetString(),
-                    Status = row.Cell(14).GetString()
-                };
+                    StartDate = DateTime.TryParse(
+                        row.Cell(10).GetString(),
+                        out var startDate)
+                            ? startDate
+                            : DateTime.UtcNow.Date,
 
-                if (string.IsNullOrWhiteSpace(policy.Status))
-                    policy.Status = "Active";
+                    EndDate = DateTime.TryParse(
+                        row.Cell(11).GetString(),
+                        out var endDate)
+                            ? endDate
+                            : DateTime.UtcNow.Date.AddYears(1),
+
+                    Premium = decimal.TryParse(
+                        row.Cell(12).GetString(),
+                        out var premium)
+                            ? premium
+                            : 500m,
+
+                    PaymentFrequency = row.Cell(13).GetString(),
+
+                    Status = string.IsNullOrWhiteSpace(row.Cell(14).GetString())
+                        ? "Active"
+                        : row.Cell(14).GetString()
+                };
 
                 policy.PolicyCoverages.Add(new PolicyCoverage
                 {
@@ -201,6 +265,7 @@ namespace PolicyAdmin.API.Services
                 });
 
                 _context.Policies.Add(policy);
+
                 importedCount++;
             }
 

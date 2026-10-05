@@ -17,7 +17,7 @@ namespace PolicyAdmin.Tests.Controllers
         {
             _repo = new Mock<IpolicyRepository>();
             _controller = new PoliciesController(_repo.Object);
-        }
+        } 
 
         [Test]
         public async Task GetPolicies_ReturnsOk()
