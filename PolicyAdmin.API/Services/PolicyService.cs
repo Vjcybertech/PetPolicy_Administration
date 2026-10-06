@@ -350,7 +350,7 @@ namespace PolicyAdmin.API.Services
                 .Include(p => p.PolicyCoverages)
                 .SelectMany(p => p.PolicyCoverages, (p, c) => new PolicyCoverageReportDto
                 {
-                    PolicyNumber = p.PolicyNumber,
+                    PolicyNumber = p.PolicyNumber!,
                     CustomerName = p.CustomerName,
                     PetName = p.PetName,
                     CoverageType = c.CoverageType,
@@ -397,7 +397,7 @@ namespace PolicyAdmin.API.Services
         private static PolicyDto MapToDto(Policy p) => new()
         {
             PolicyId = p.PolicyId,
-            PolicyNumber = p.PolicyNumber,
+            PolicyNumber = p.PolicyNumber!,
             QuoteId = p.QuoteId,
             CustomerId = p.CustomerId,
             CustomerName = p.CustomerName,
