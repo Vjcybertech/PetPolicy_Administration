@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PolicyAdmin.API.Data;
 using PolicyAdmin.API.DTOs;
 using PolicyAdmin.API.Models;
-
+using System.Text.RegularExpressions;
 
 namespace PolicyAdmin.API.Services
 {
@@ -31,7 +31,7 @@ namespace PolicyAdmin.API.Services
                     p.Status.ToLower() == status.ToLower());
             }
 
-            // Pagination validation
+            
             if (pageNumber < 1)
                 pageNumber = 1;
 
@@ -79,14 +79,7 @@ namespace PolicyAdmin.API.Services
             if (quote.Status != "Approved")
                 throw new InvalidOperationException($"Quote '{dto.QuoteId}' is not eligible for policy creation (Status: {quote.Status}).");
 
-            // Check duplicate policy number
-            var isDuplicatePolicyNum = await _context.Policies
-                .AnyAsync(p => p.PolicyNumber == dto.PolicyNumber);
-
-            if (isDuplicatePolicyNum)
-                throw new InvalidOperationException(
-                    $"Policy Number '{dto.PolicyNumber}' already exists.");
-
+            
             
             var endDate = dto.EndDate;
 
@@ -101,7 +94,7 @@ namespace PolicyAdmin.API.Services
            
             var policy = new Policy
             {
-                PolicyNumber = dto.PolicyNumber,
+                
                 QuoteId = quote.QuoteId,
                 CustomerId = quote.CustomerId,
                 CustomerName = quote.CustomerName,
@@ -152,6 +145,10 @@ namespace PolicyAdmin.API.Services
 
             _context.Policies.Add(policy);
 
+            await _context.SaveChangesAsync();
+
+            policy.PolicyNumber = policy.PolicyId.ToString();
+            
             await _context.SaveChangesAsync();
 
             return MapToDto(policy);
@@ -267,10 +264,24 @@ namespace PolicyAdmin.API.Services
                 throw new KeyNotFoundException($"Policy '{policyNumber}' was not found.");
 
             if (!string.IsNullOrWhiteSpace(dto.CustomerEmail))
+            {
+                var isValidEmail = Regex.IsMatch(dto.CustomerEmail,@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+                
+                if (!isValidEmail)
+                throw new ArgumentException("Invalid email format.");
+                
                 policy.CustomerEmail = dto.CustomerEmail;
+            }
+                
 
             if (!string.IsNullOrWhiteSpace(dto.CustomerPhone))
+            {
+                if (!Regex.IsMatch(dto.CustomerPhone, @"^[0-9]{10}$"))
+                throw new ArgumentException("Phone number must contain exactly 10 digits.");
+
                 policy.CustomerPhone = dto.CustomerPhone;
+            }
+                
 
             if (!string.IsNullOrWhiteSpace(dto.PaymentFrequency))
                 policy.PaymentFrequency = dto.PaymentFrequency;
@@ -334,7 +345,7 @@ namespace PolicyAdmin.API.Services
 
         public async Task<List<PolicyCoverageReportDto>> GetFlattenedCoverageReportAsync()
         {
-            // LINQ Demonstration: SelectMany (Flattening coverages for reporting)
+            
             var report = await _context.Policies
                 .Include(p => p.PolicyCoverages)
                 .SelectMany(p => p.PolicyCoverages, (p, c) => new PolicyCoverageReportDto

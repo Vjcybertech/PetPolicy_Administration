@@ -66,7 +66,6 @@ namespace PolicyAdmin.API.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PolicyNumber")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Premium")

@@ -61,7 +61,6 @@ namespace PolicyAdmin.API.DTOs
     public class CreatePolicyDto
     {
         public string QuoteId { get; set; } = string.Empty;
-        public string PolicyNumber { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string PaymentFrequency { get; set; } = "Annual";

@@ -6,7 +6,7 @@ namespace PolicyAdmin.API.Models
     public class Policy
     {
         public int PolicyId { get; set; }
-        public string PolicyNumber { get; set; } = string.Empty; 
+        public string? PolicyNumber { get; set; } = string.Empty; 
         public string QuoteId { get; set; } = string.Empty;
         
         

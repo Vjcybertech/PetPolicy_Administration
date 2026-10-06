@@ -7,7 +7,7 @@ using PolicyAdmin.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add Database Context with SQLite
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? "Data Source=policyadmin.db";
 
@@ -57,6 +57,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI(c =>

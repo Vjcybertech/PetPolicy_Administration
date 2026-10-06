@@ -134,7 +134,7 @@ namespace PolicyAdmin.API.Data
 
             var pol2 = new Policy
             {
-                PolicyNumber = "POL-2026-002",
+                PolicyNumber = "2",
                 QuoteId = "QT-999",
                 CustomerId = "CUST-499",
                 CustomerName = "Amanda Lewis",
@@ -167,7 +167,7 @@ namespace PolicyAdmin.API.Data
 
             var pol3 = new Policy
             {
-                PolicyNumber = "POL-2025-089",
+                PolicyNumber = "3",
                 QuoteId = "QT-888",
                 CustomerId = "CUST-488",
                 CustomerName = "Robert Chen",
@@ -200,7 +200,7 @@ namespace PolicyAdmin.API.Data
 
             var pol4 = new Policy
             {
-                PolicyNumber = "POL-2026-003",
+                PolicyNumber = "4",
                 QuoteId = "QT-777",
                 CustomerId = "CUST-477",
                 CustomerName = "Jessica Taylor",
