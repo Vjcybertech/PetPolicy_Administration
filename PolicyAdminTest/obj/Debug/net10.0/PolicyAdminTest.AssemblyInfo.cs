@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PolicyAdminTest")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2a39fa6440f175e5f9c4d8cbb12d7ff942c9c4c6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f319a1627376877e1588d03da3a83ea68e61caac")]
 [assembly: System.Reflection.AssemblyProductAttribute("PolicyAdminTest")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PolicyAdminTest")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

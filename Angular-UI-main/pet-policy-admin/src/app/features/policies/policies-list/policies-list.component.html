@@ -1,0 +1,201 @@
+<div class="policies-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h2>Policy Portfolio Administration</h2>
+      <p class="subtitle">Search, filter, view and manage all pet insurance policies </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="openImportModal()">
+        <span class="material-icons">upload_file</span>
+        Import Excel
+      </button>
+      <button class="btn btn-outline" (click)="exportToExcel()">
+        <span class="material-icons">file_download</span>
+        Export Portfolio
+      </button>
+      <button class="btn btn-primary" routerLink="/create-policy">
+        <span class="material-icons">add_circle</span>
+        New Policy
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter & Search Card -->
+  <div class="card premium-filter-card">
+    <div class="filters-row">
+      <div class="search-box">
+        <span class="material-icons search-icon">search</span>
+        <input
+          type="text"
+          placeholder="Search by policy #, customer name, email, pet name, or breed..."
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()"
+        />
+        <button *ngIf="searchTerm" class="clear-search" (click)="searchTerm = ''; onSearchChange()">&times;</button>
+      </div>
+      <!-- <div class="filter-group">
+        <label>Status Filter</label>
+        <select [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+          <option *ngFor="let s of statusOptions" [value]="s.value">{{ s.label }}</option>
+        </select>
+      </div> -->
+    </div>
+
+    <!-- Quick Status Pill Tabs -->
+    <div class="status-pills">
+      <button
+        *ngFor="let s of statusOptions"
+        class="status-pill"
+        [class.active]="selectedStatus === s.value"
+        (click)="quickSetStatus(s.value)"
+      >
+        {{ s.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-error">
+    <span class="material-icons">error_outline</span>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Main Table Card -->
+  <div class="card table-card shadow-sm">
+    <div *ngIf="filteredPolicies.length === 0 && !error" class="empty-state">
+      <div class="empty-icon-circle">
+        <span class="material-icons">policy</span>
+      </div>
+      <h3>No policies found</h3>
+      <p>No policy records matched your current search filters.</p>
+      <div class="empty-actions">
+        <button class="btn btn-outline btn-sm" (click)="searchTerm = ''; selectedStatus = ''; onFilterChange()">
+          Clear All Filters
+        </button>
+        <a routerLink="/create-policy" class="btn btn-primary btn-sm">Create New Policy</a>
+      </div>
+    </div>
+
+    <div *ngIf="filteredPolicies.length > 0" class="table-container">
+      <table class="premium-table">
+        <thead>
+          <tr>
+            <th>Policy #</th>
+            <th>Customer Information</th>
+            <th>Insured Pet</th>
+            <th>Coverage Period</th>
+            <th>Annual Premium</th>
+            <th>Frequency</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filteredPolicies" (click)="viewPolicy(p.policyNumber)">
+            <td>
+              <span class="policy-number-pill">{{ p.policyNumber }}</span>
+            </td>
+            <td>
+              <div class="customer-info-cell">
+                <span class="customer-name font-bold text-slate-800">{{ p.customerName }}</span>
+                <span class="customer-email text-slate-400 text-xs">{{ p.customerEmail }}</span>
+                <span *ngIf="p.customerPhone" class="customer-phone text-slate-400 text-xs">📞 {{ p.customerPhone }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="pet-info-cell">
+                <div class="pet-icon-wrapper">{{ p.petType === 'Dog' ? '🐕' : '🐈' }}</div>
+                <div>
+                  <span class="pet-name font-bold text-slate-800">{{ p.petName }}</span>
+                  <span class="pet-breed text-slate-400 text-xs">{{ p.breed }} ({{ p.age }}yr)</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="dates-cell">
+                <span class="date-start text-xs text-slate-500">Effective: {{ formatDate(p.startDate) }}</span>
+                <span class="date-end font-semibold text-slate-700">Expires: {{ formatDate(p.endDate) }}</span>
+              </div>
+            </td>
+            <td>
+              <strong class="premium-amount font-bold text-slate-900">{{ formatCurrency(p.premium) }}</strong>
+            </td>
+            <td>
+              <span class="freq-tag">{{ p.paymentFrequency }}</span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(p.status)">
+                <span class="badge-dot"></span>
+                {{ p.status }}
+              </span>
+            </td>
+            <td class="text-right actions-cell" (click)="$event.stopPropagation()">
+              <div class="action-buttons-wrapper">
+                <button
+                  class="btn btn-outline-clean btn-sm"
+                  (click)="viewPolicy(p.policyNumber)"
+                  title="View complete policy details"
+                >
+                  <span class="material-icons text-sm">visibility</span>
+                  View
+                </button>
+                <button
+                  *ngIf="canRenew(p)"
+                  class="btn btn-renew-pill btn-sm"
+                  (click)="renewPolicy(p, $event)"
+                  title="Renew policy"
+                >
+                  <span class="material-icons text-sm">autorenew</span>
+                  Renew
+                </button>
+                <button
+                  *ngIf="canCancel(p)"
+                  class="btn btn-cancel-pill btn-sm"
+                  (click)="cancelPolicy(p, $event)"
+                  title="Cancel policy"
+                >
+                  <span class="material-icons text-sm">cancel</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="filteredPolicies.length > 0" class="table-footer">
+      <span class="results-count">Showing <strong>{{ filteredPolicies.length }}</strong> of <strong>{{ policies.length }}</strong> policies</span>
+    </div>
+  </div>
+
+  <!-- Excel Import Modal -->
+  <div *ngIf="showImportModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><span class="material-icons text-emerald-600">table_view</span> Import Policies from Excel</h3>
+        <button class="close-btn" (click)="closeImportModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-sm text-slate-500 mb-4">Select an Excel workbook (<code>.xlsx</code>) formatted with policy records to import into the administration database.</p>
+        <div class="file-dropzone">
+          <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" id="excelFileInput" />
+          <label for="excelFileInput" class="dropzone-label">
+            <span class="material-icons dropzone-icon">cloud_upload</span>
+            <span class="dropzone-text">{{ selectedFile ? selectedFile.name : 'Click to select or drag & drop .xlsx file' }}</span>
+            <span *ngIf="selectedFile" class="dropzone-size text-emerald-600 font-semibold mt-1">
+              ✓ Ready for upload ({{ (selectedFile.size / 1024).toFixed(1) }} KB)
+            </span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="closeImportModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="uploadExcelFile()" [disabled]="!selectedFile || importing">
+          <span *ngIf="importing" class="spinner-sm"></span>
+          {{ importing ? 'Importing Records...' : 'Upload & Import' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

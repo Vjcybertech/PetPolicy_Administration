@@ -1,0 +1,180 @@
+<div class="quotes-page">
+  <div class="page-header">
+    <h2>🏷️ Quotes Management</h2>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openNewQuoteModal()">
+        <span class="material-icons">add</span>
+        Generate New Quote
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="card filters-card">
+    <div class="filters-row">
+      <div class="search-box">
+        <span class="material-icons">search</span>
+        <input
+          type="text"
+          placeholder="Search quotes by ID, customer, or pet..."
+          [(ngModel)]="searchTerm"
+          (input)="applyFilter()"
+        />
+      </div>
+      <div class="filter-group">
+        <label>Quote Status</label>
+        <select [(ngModel)]="selectedStatus" (change)="loadQuotes()">
+          <option value="">All Statuses</option>
+          <option value="Approved">Approved</option>
+          <option value="Converted">Converted</option>
+          <option value="Expired">Expired</option>
+          <option value="Pending">Pending</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-error">
+    <span class="material-icons">error</span>
+    {{ error }}
+  </div>
+
+  <!-- Quotes Table -->
+  <div class="card">
+    <div *ngIf="filteredQuotes.length === 0 && !error" class="empty-state">
+      <span class="material-icons">request_quote</span>
+      <p>No quotes found matching your filters.</p>
+    </div>
+
+    <div *ngIf="filteredQuotes.length > 0" class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Quote ID</th>
+            <th>Customer</th>
+            <th>Pet</th>
+            <th>Coverage Type</th>
+            <th>Annual Premium</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let q of filteredQuotes">
+            <td><strong class="quote-id">{{ q.quoteId }}</strong></td>
+            <td>
+              <div class="cell-group">
+                <span class="main-text">{{ q.customerName }}</span>
+                <span class="sub-text">{{ q.customerEmail }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="cell-group">
+                <span class="main-text">{{ q.petType === 'Dog' ? '🐕' : '🐈' }} {{ q.petName }}</span>
+                <span class="sub-text">{{ q.breed }}, {{ q.age }}yr</span>
+              </div>
+            </td>
+            <td>{{ q.coverageType }}</td>
+            <td><strong>{{ formatCurrency(q.annualPremium) }}</strong></td>
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(q.status)">{{ q.status }}</span>
+            </td>
+            <td>
+              <button
+                *ngIf="q.status === 'Approved'"
+                class="btn btn-success btn-sm"
+                (click)="createPolicyFromQuote(q.quoteId)"
+                title="Create Policy from this Approved Quote"
+              >
+                <span class="material-icons" style="font-size:14px">add_circle</span>
+                Issue Policy
+              </button>
+              <span *ngIf="q.status !== 'Approved'" class="ineligible-text font-medium text-slate-400 text-xs">
+                Not Eligible
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- New Quote Modal -->
+  <div *ngIf="showNewQuoteModal" class="modal-overlay">
+    <div class="modal max-w-lg">
+      <div class="modal-header">
+        <h3>✨ Generate New Quote</h3>
+        <button class="close-btn" (click)="closeNewQuoteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Customer Name *</label>
+            <input type="text" [(ngModel)]="newQuote.customerName" placeholder="John Smith" />
+          </div>
+          <div class="form-group">
+            <label>Customer Email</label>
+            <input type="email" [(ngModel)]="newQuote.customerEmail" placeholder="john@example.com" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Pet Name *</label>
+            <input type="text" [(ngModel)]="newQuote.petName" placeholder="Buddy" />
+          </div>
+          <div class="form-group">
+            <label>Pet Type</label>
+            <select [(ngModel)]="newQuote.petType">
+              <option value="Dog">Dog</option>
+              <option value="Cat">Cat</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Breed</label>
+            <input type="text" [(ngModel)]="newQuote.breed" placeholder="Golden Retriever" />
+          </div>
+          <div class="form-group">
+            <label>Age (Years)</label>
+            <input type="number" [(ngModel)]="newQuote.age" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Coverage Type</label>
+            <select [(ngModel)]="newQuote.coverageType">
+              <option value="Comprehensive">Comprehensive</option>
+              <option value="Accident Only">Accident Only</option>
+              <option value="Wellness">Wellness</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Annual Premium ($)</label>
+            <input type="number" [(ngModel)]="newQuote.annualPremium" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select [(ngModel)]="newQuote.status">
+            <option value="Approved">Approved (Eligible for Policy)</option>
+            <option value="Pending">Pending Underwriting</option>
+            <option value="Converted">Converted</option>
+            <option value="Expired">Expired</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="closeNewQuoteModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="saveNewQuote()" [disabled]="creating">
+          {{ creating ? 'Generating...' : 'Save & Issue Quote' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

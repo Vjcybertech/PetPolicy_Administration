@@ -1,0 +1,112 @@
+<div class="renew-page">
+  
+  <!-- Success -->
+  <div *ngIf="successMessage" class="success-view">
+    <div class="success-icon">✅</div>
+    <h2>Renewal Successful!</h2>
+    <p>{{ successMessage }}</p>
+
+    <div *ngIf="renewedPolicy" class="renewed-summary card">
+      <h3>Updated Policy Status</h3>
+      <div class="info-row"><span>Policy Number</span><strong>{{ renewedPolicy.policyNumber }}</strong></div>
+      <div class="info-row"><span>Status</span><span class="badge" [ngClass]="getStatusClass(renewedPolicy.status)">{{ renewedPolicy.status }}</span></div>
+      <div class="info-row"><span>New Start Date</span><strong>{{ formatDate(renewedPolicy.startDate) }}</strong></div>
+      <div class="info-row"><span>New End Date</span><strong>{{ formatDate(renewedPolicy.endDate) }}</strong></div>
+      <div class="info-row"><span>New Premium</span><strong>{{ formatCurrency(renewedPolicy.premium) }}</strong></div>
+    </div>
+
+    <button class="btn btn-primary" (click)="viewPolicy()">
+      <span class="material-icons">visibility</span>
+      View Policy Details
+    </button>
+  </div>
+
+  <ng-container *ngIf="!successMessage && policy">
+    <div class="page-header">
+      
+        <button class="back-btn" (click)="goBack()">
+          <span class="material-icons">arrow_back</span>
+        </button>
+        <h2>
+        Renew Policy &mdash; {{ policyNumber }}
+      </h2>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="alert alert-error">
+      <span class="material-icons">error</span>
+      {{ error }}
+    </div>
+
+    <div class="renew-layout">
+      <!-- Comparison Panel -->
+      <div class="card comparison-panel">
+        <h3>📊 Premium &amp; Coverage Comparison</h3>
+
+        <div class="comparison-grid">
+          <div class="comp-col current">
+            <div class="comp-label">Current Policy</div>
+            <div class="comp-premium">{{ formatCurrency(policy.premium) }}</div>
+            <div class="comp-period">{{ formatDate(policy.startDate) }} &rarr; {{ formatDate(policy.endDate) }}</div>
+          </div>
+          <div class="comp-arrow">
+            <span class="material-icons">arrow_forward</span>
+          </div>
+          <div class="comp-col proposed">
+            <div class="comp-label">Proposed Renewal</div>
+            <div class="comp-premium">{{ formatCurrency(proposedPremium) }}</div>
+            <div class="comp-change" [class.increase]="premiumChange > 0" [class.decrease]="premiumChange < 0">
+              <span *ngIf="premiumChange > 0">↑ +{{ formatCurrency(premiumChange) }} (+{{ premiumChangePct | number:'1.1-1' }}%)</span>
+              <span *ngIf="premiumChange < 0">↓ {{ formatCurrency(premiumChange) }} ({{ premiumChangePct | number:'1.1-1' }}%)</span>
+              <span *ngIf="premiumChange === 0">No change</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="coverage-summary">
+          <h4>Current Coverage</h4>
+          <div *ngFor="let cov of policy.coverages" class="cov-row">
+            <span>{{ cov.coverageType }}</span>
+            <span>Limit: {{ formatCurrency(cov.annualLimit) }} | Deductible: {{ formatCurrency(cov.deductible) }} | Reimb: {{ cov.reimbursementPct }}%</span>
+          </div>
+          <div *ngIf="policy.coverages.length === 0" class="no-cov">No coverage details available.</div>
+        </div>
+      </div>
+
+      <!-- Renewal Form -->
+      <div class="card renew-form-card">
+        <h3>🔄 Renewal Details</h3>
+        <form [formGroup]="renewForm" (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label>Proposed Annual Premium *</label>
+            <input type="number" formControlName="proposedPremium" min="0" step="0.01" placeholder="0.00" />
+            <div class="field-error" *ngIf="renewForm.get('proposedPremium')?.touched && renewForm.get('proposedPremium')?.invalid">
+              Valid premium is required.
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Extension (Years) *</label>
+            <select formControlName="extensionYears">
+              <option value="1">1 Year</option>
+              <option value="2">2 Years</option>
+              <option value="3">3 Years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea formControlName="notes" rows="3" placeholder="Optional renewal notes..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" (click)="goBack()">Cancel</button>
+            <button type="submit" class="btn btn-success" [disabled]="renewForm.invalid || submitting">
+              <span *ngIf="submitting" class="spinner-sm"></span>
+              <span class="material-icons" *ngIf="!submitting">autorenew</span>
+              {{ submitting ? 'Processing...' : 'Confirm Renewal' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,94 @@
+<div class="cancel-page">
+  <!-- Success -->
+  <div *ngIf="successMessage" class="success-view cancelled">
+    <div class="success-icon">🚧</div>
+    <h2>Policy Cancelled</h2>
+    <p>{{ successMessage }}</p>
+
+    <div *ngIf="cancelledPolicy" class="cancelled-summary card">
+      <h3>Cancellation Confirmation</h3>
+      <div class="info-row"><span>Policy Number</span><strong>{{ cancelledPolicy.policyNumber }}</strong></div>
+      <div class="info-row"><span>Status</span><span class="badge" [ngClass]="getStatusClass(cancelledPolicy.status)">{{ cancelledPolicy.status }}</span></div>
+      <div class="info-row"><span>Customer</span><strong>{{ cancelledPolicy.customerName }}</strong></div>
+      <div class="info-row"><span>Pet</span><strong>{{ cancelledPolicy.petName }}</strong></div>
+    </div>
+
+    <button class="btn btn-outline" (click)="viewPolicy()">
+      <span class="material-icons">visibility</span>
+      View Policy
+    </button>
+  </div>
+
+  <ng-container *ngIf="!successMessage && policy">
+    <div class="page-header">
+      <h2>
+        <button class="back-btn" (click)="goBack()">
+          <span class="material-icons">arrow_back</span>
+        </button>
+        Cancel Policy &mdash; {{ policyNumber }}
+      </h2>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="alert alert-error">
+      <span class="material-icons">error</span>
+      {{ error }}
+    </div>
+
+    <!-- Warning Banner -->
+    <div class="alert alert-warning">
+      <span class="material-icons">warning</span>
+      <strong>Warning:</strong> This action will permanently cancel policy <strong>{{ policyNumber }}</strong> for <strong>{{ policy.customerName }}</strong>'s pet <strong>{{ policy.petName }}</strong>. This cannot be undone.
+    </div>
+
+    <div class="cancel-layout">
+      <!-- Policy Summary -->
+      <div class="card policy-summary">
+        <h3>📄 Policy Summary</h3>
+        <div class="summary-item"><span>Policy Number</span><strong>{{ policy.policyNumber }}</strong></div>
+        <div class="summary-item"><span>Customer</span><strong>{{ policy.customerName }}</strong></div>
+        <div class="summary-item"><span>Pet</span><strong>{{ policy.petType === 'Dog' ? '🐕' : '🐈' }} {{ policy.petName }} ({{ policy.breed }})</strong></div>
+        <div class="summary-item"><span>Current Status</span><span class="badge" [ngClass]="getStatusClass(policy.status)">{{ policy.status }}</span></div>
+        <div class="summary-item"><span>Policy Period</span><strong>{{ formatDate(policy.startDate) }} &rarr; {{ formatDate(policy.endDate) }}</strong></div>
+        <div class="summary-item"><span>Annual Premium</span><strong>{{ formatCurrency(policy.premium) }}</strong></div>
+      </div>
+
+      <!-- Cancellation Form -->
+      <div class="card cancel-form-card">
+        <h3>🚫 Cancellation Details</h3>
+        <form [formGroup]="cancelForm" (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label>Cancellation Effective Date *</label>
+            <input type="date" formControlName="cancellationDate" />
+            <div class="field-error" *ngIf="cancelForm.get('cancellationDate')?.touched && cancelForm.get('cancellationDate')?.invalid">
+              Effective date is required.
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Reason for Cancellation *</label>
+            <select formControlName="reason">
+              <option value="">-- Select a reason --</option>
+              <option *ngFor="let r of cancellationReasons" [value]="r">{{ r }}</option>
+            </select>
+            <div class="field-error" *ngIf="cancelForm.get('reason')?.touched && cancelForm.get('reason')?.invalid">
+              Please select a cancellation reason.
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Additional Notes</label>
+            <textarea formControlName="notes" rows="4" placeholder="Add notes about this cancellation (optional)..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" (click)="goBack()">Go Back</button>
+            <button type="submit" class="btn btn-danger" [disabled]="cancelForm.invalid || submitting">
+              <span *ngIf="submitting" class="spinner-sm"></span>
+              <span class="material-icons" *ngIf="!submitting">cancel</span>
+              {{ submitting ? 'Processing...' : 'Confirm Cancellation' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </ng-container>
+</div>

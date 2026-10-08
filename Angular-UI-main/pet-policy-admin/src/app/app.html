@@ -1,0 +1,58 @@
+<div class="app-shell" [class.sidebar-collapsed]="!sidebarOpen">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <span class="brand-icon">🐾</span>
+        <span class="brand-name">PawShield</span>
+      </div>
+      <button class="sidebar-toggle" (click)="toggleSidebar()" title="Toggle Sidebar">
+        <span class="material-icons">{{ sidebarOpen ? 'chevron_left' : 'chevron_right' }}</span>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        class="nav-item"
+        [title]="item.label"
+      >
+        <span class="material-icons nav-icon">{{ item.icon }}</span>
+        <span class="nav-label">{{ item.label }}</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <span class="material-icons">account_circle</span>
+        <span class="user-name">Policy Officer</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <header class="top-bar">
+      <!-- <h1 class="page-title">Pet Policy Administration System</h1> -->
+      
+    </header>
+    <main class="content-area">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container">
+    <div
+      *ngFor="let toast of (toastService.toasts | async)"
+      class="toast-item"
+      [ngClass]="'toast-' + toast.type"
+    >
+      <span class="material-icons toast-icon">
+        {{ toast.type === 'success' ? 'check_circle' : toast.type === 'error' ? 'error' : toast.type === 'warning' ? 'warning' : 'info' }}
+      </span>
+      <span class="toast-text">{{ toast.text }}</span>
+      <button class="toast-close" (click)="removeToast(toast.id)">&times;</button>
+    </div>
+  </div>
+</div>

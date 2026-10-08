@@ -1,0 +1,183 @@
+<div class="create-policy-page">
+  <div class="page-header">
+    <h2>➕ Create Policy</h2>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="steps" *ngIf="step !== 'success'">
+    <div class="step" [class.active]="step === 'lookup'" [class.done]="step === 'form'">
+      <div class="step-num">{{ step === 'form' ? '✓' : '1' }}</div>
+      <span>Quote Lookup</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step" [class.active]="step === 'form'">
+      <div class="step-num">2</div>
+      <span>Policy Details</span>
+    </div>
+  </div>
+
+  <!-- STEP 1: Quote Lookup -->
+  <div *ngIf="step === 'lookup'" class="card lookup-card">
+    <h3>🔍 Enter Approved Quote Number</h3>
+    <p class="lookup-hint">Enter the Quote ID (e.g. <code>QT-1001</code>) to look up an approved quote and populate policy details automatically.</p>
+
+    <div class="lookup-row">
+      <div class="form-group" style="flex:1">
+        <label>Quote ID *</label>
+        <input
+          type="text"
+          [(ngModel)]="quoteId"
+          placeholder="e.g. QT-1001"
+          (keyup.enter)="lookupQuote()"
+        />
+      </div>
+      <button class="btn btn-primary" (click)="lookupQuote()" [disabled]="quoteLookupLoading">
+        <span *ngIf="quoteLookupLoading" class="spinner-sm"></span>
+        <span class="material-icons" *ngIf="!quoteLookupLoading">search</span>
+        {{ quoteLookupLoading ? 'Looking up...' : 'Look Up Quote' }}
+      </button>
+    </div>
+
+    <div *ngIf="quoteLookupError" class="alert alert-error">
+      <span class="material-icons">block</span>
+      {{ quoteLookupError }}
+    </div>
+  </div>
+
+  <!-- STEP 2: Policy Form -->
+  <div *ngIf="step === 'form' && quote">
+    <!-- Quote Info Banner -->
+    <div class="quote-banner card">
+      <div class="quote-meta">
+        <span class="quote-id-badge">Quote {{ quote.quoteId }}</span>
+        <span class="badge badge-active">Approved</span>
+      </div>
+      <div class="quote-info-grid">
+        <div class="qi-col">
+          <label>Customer</label>
+          <strong>{{ quote.customerName }}</strong>
+          <span>{{ quote.customerEmail }}</span>
+        </div>
+        <div class="qi-col">
+          <label>Pet</label>
+          <strong>{{ quote.petType === 'Dog' ? '🐕' : '🐈' }} {{ quote.petName }}</strong>
+          <span>{{ quote.breed }}, {{ quote.age }}yr old</span>
+        </div>
+        <div class="qi-col">
+          <label>Coverage</label>
+          <strong>{{ quote.coverageType }}</strong>
+          <span>Limit: {{ formatCurrency(quote.annualLimit) }}</span>
+        </div>
+        <div class="qi-col">
+          <label>Quote Premium</label>
+          <strong class="premium">{{ formatCurrency(quote.annualPremium) }}/yr</strong>
+          <span>{{ quote.paymentFrequency }}</span>
+        </div>
+      </div>
+      <button class="change-quote-btn" (click)="resetForm()">
+        <span class="material-icons">swap_horiz</span> Change Quote
+      </button>
+    </div>
+
+    <!-- Policy Form -->
+    <div class="card policy-form-card">
+      <h3>📄 Policy Details</h3>
+      <div *ngIf="submitError" class="alert alert-error">
+        <span class="material-icons">error</span>
+        {{ submitError }}
+      </div>
+
+      <form [formGroup]="policyForm" (ngSubmit)="onSubmit()">
+        <h4 class="form-section-title">Policy Period</h4>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Effective Start Date *</label>
+            <input type="date" formControlName="startDate" />
+            <div class="field-error" *ngIf="policyForm.get('startDate')?.touched && policyForm.get('startDate')?.invalid">Required</div>
+          </div>
+          <div class="form-group">
+            <label>Expiry End Date *</label>
+            <input type="date" formControlName="endDate" />
+            <div class="field-error" *ngIf="policyForm.get('endDate')?.touched && policyForm.get('endDate')?.invalid">Required</div>
+          </div>
+        </div>
+
+        <h4 class="form-section-title">Premium &amp; Payment</h4>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Annual Premium *</label>
+            <input type="number" formControlName="annualPremium" min="0" step="0.01" placeholder="0.00" />
+            <div class="field-error" *ngIf="policyForm.get('annualPremium')?.touched && policyForm.get('annualPremium')?.invalid">Valid premium required</div>
+          </div>
+          <div class="form-group">
+            <label>Payment Frequency *</label>
+            <select formControlName="paymentFrequency">
+              <option *ngFor="let f of paymentFrequencies" [value]="f">{{ f }}</option>
+            </select>
+          </div>
+        </div>
+
+        <h4 class="form-section-title">Coverage Details</h4>
+        <div class="form-group">
+          <label>Coverage Type *</label>
+          <select formControlName="coverageType">
+            <option *ngFor="let c of coverageTypes" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>Annual Limit ($) *</label>
+            <input type="number" formControlName="annualLimit" min="0" step="0.01" placeholder="10000.00" />
+            <div class="field-error" *ngIf="policyForm.get('annualLimit')?.touched && policyForm.get('annualLimit')?.invalid">Required</div>
+          </div>
+          <div class="form-group">
+            <label>Deductible ($) *</label>
+            <input type="number" formControlName="deductible" min="0" step="0.01" placeholder="250.00" />
+            <div class="field-error" *ngIf="policyForm.get('deductible')?.touched && policyForm.get('deductible')?.invalid">Required</div>
+          </div>
+          <div class="form-group">
+            <label>Reimbursement % *</label>
+            <input type="number" formControlName="reimbursementPct" min="0" max="100" step="1" placeholder="80" />
+            <div class="field-error" *ngIf="policyForm.get('reimbursementPct')?.touched && policyForm.get('reimbursementPct')?.invalid">0-100 required</div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" (click)="resetForm()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="policyForm.invalid || submitting">
+            <span *ngIf="submitting" class="spinner-sm"></span>
+            <span class="material-icons" *ngIf="!submitting">save</span>
+            {{ submitting ? 'Creating Policy...' : 'Create Policy' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- STEP 3: Success -->
+  <div *ngIf="step === 'success' && createdPolicy" class="success-view">
+    <div class="success-icon">🎉</div>
+    <h2>Policy Created Successfully!</h2>
+    <p>Policy <strong>{{ createdPolicy.policyNumber }}</strong> has been issued for <strong>{{ createdPolicy.customerName }}</strong>'s pet <strong>{{ createdPolicy.petName }}</strong>.</p>
+
+    <div class="created-summary card">
+      <div class="cs-row"><span>Policy Number</span><strong>{{ createdPolicy.policyNumber }}</strong></div>
+      <div class="cs-row"><span>Customer</span><strong>{{ createdPolicy.customerName }}</strong></div>
+      <div class="cs-row"><span>Pet</span><strong>{{ createdPolicy.petName }} ({{ createdPolicy.petType }})</strong></div>
+      <div class="cs-row"><span>Period</span><strong>{{ createdPolicy.startDate | date:'mediumDate' }} &rarr; {{ createdPolicy.endDate | date:'mediumDate' }}</strong></div>
+      <div class="cs-row"><span>Premium</span><strong>{{ formatCurrency(createdPolicy.premium) }}/year</strong></div>
+      <div class="cs-row"><span>Status</span><span class="badge badge-active">{{ createdPolicy.status }}</span></div>
+    </div>
+
+    <div class="success-actions">
+      <button class="btn btn-outline" (click)="resetForm()">
+        <span class="material-icons">add</span>
+        Create Another
+      </button>
+      <button class="btn btn-primary" (click)="viewCreatedPolicy()">
+        <span class="material-icons">visibility</span>
+        View Policy Details
+      </button>
+    </div>
+  </div>
+</div>

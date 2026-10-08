@@ -1,0 +1,107 @@
+.cancel-page {
+  .success-view {
+    text-align: center;
+    padding: 40px 20px;
+
+    &.cancelled h2 { color: var(--danger); }
+
+    .success-icon { font-size: 64px; margin-bottom: 16px; }
+    h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    p { color: var(--text-muted); font-size: 15px; margin-bottom: 24px; }
+
+    .cancelled-summary {
+      max-width: 500px;
+      margin: 0 auto 24px;
+      text-align: left;
+
+      h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+        > span:first-child { color: var(--text-muted); }
+        &:last-child { border-bottom: none; }
+      }
+    }
+  }
+
+  .page-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 24px;
+
+    .back-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      &:hover { background: var(--bg); color: var(--text); }
+      .material-icons { font-size: 18px; }
+    }
+  }
+
+  .cancel-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .policy-summary {
+    h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+
+      &:last-child { border-bottom: none; }
+
+      > span:first-child { color: var(--text-muted); font-size: 13px; }
+      strong { font-weight: 600; text-align: right; }
+    }
+  }
+
+  .cancel-form-card {
+    h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .spinner-sm {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  }
+}

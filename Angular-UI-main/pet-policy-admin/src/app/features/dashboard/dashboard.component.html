@@ -1,0 +1,196 @@
+<div class="dashboard-page">
+  <div class="page-header">
+    <div>
+      <h2> Executive Policy Dashboard</h2>
+      <p class="subtitle">Real-time overview of active underwriting, written premiums, and policy lifecycles</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" routerLink="/policies">
+        <span class="material-icons">list_alt</span>
+        View All Policies
+      </button>
+      <button class="btn btn-primary" routerLink="/create-policy">
+        <span class="material-icons">add_circle</span>
+        Issue New Policy
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Alert (If Any) -->
+  <div *ngIf="error" class="alert alert-error">
+    <span class="material-icons">error_outline</span>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <div class="summary-card total" (click)="navigateToPolicies()">
+      <div class="card-icon"><span class="material-icons">folder_open</span></div>
+      <div class="card-body">
+        <span class="card-label">Total Portfolio</span>
+        <span class="card-value">{{ dashboard.totalPolicies }}</span>
+        <span class="card-hint">All records</span>
+      </div>
+    </div>
+    <div class="summary-card active" (click)="navigateToPolicies('Active')">
+      <div class="card-icon"><span class="material-icons">verified</span></div>
+      <div class="card-body">
+        <span class="card-label">Active Policies</span>
+        <span class="card-value">{{ dashboard.activeCount }}</span>
+        <span class="card-hint text-emerald-600 font-medium">In force</span>
+      </div>
+    </div>
+    <div class="summary-card expiring" (click)="navigateToPolicies('Expiring Soon')">
+      <div class="card-icon"><span class="material-icons">alarm</span></div>
+      <div class="card-body">
+        <span class="card-label">Expiring Soon</span>
+        <span class="card-value text-amber-600">{{ dashboard.expiringSoonCount }}</span>
+        <span class="card-hint text-amber-600 font-medium">Within 30 days</span>
+      </div>
+    </div>
+    <div class="summary-card expired" (click)="navigateToPolicies('Expired')">
+      <div class="card-icon"><span class="material-icons">event_busy</span></div>
+      <div class="card-body">
+        <span class="card-label">Expired</span>
+        <span class="card-value text-rose-600">{{ dashboard.expiredCount }}</span>
+        <span class="card-hint text-rose-500 font-medium">Term completed</span>
+      </div>
+    </div>
+    <div class="summary-card cancelled" (click)="navigateToPolicies('Cancelled')">
+      <div class="card-icon"><span class="material-icons">block</span></div>
+      <div class="card-body">
+        <span class="card-label">Cancelled</span>
+        <span class="card-value text-slate-500">{{ dashboard.cancelledCount }}</span>
+        <span class="card-hint text-slate-400 font-medium">Terminated</span>
+      </div>
+    </div>
+    <div class="summary-card premium">
+      <div class="card-icon"><span class="material-icons">payments</span></div>
+      <div class="card-body">
+        <span class="card-label">Written Premium</span>
+        <span class="card-value premium-value">{{ formatCurrency(dashboard.totalWrittenPremium) }}</span>
+        <span class="card-hint text-purple-600 font-medium">Annualized total</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Breakdown & Expiring Grid -->
+  <div class="grid-layout">
+    <div class="card premium-card status-breakdown">
+      <div class="panel-header">
+        <h3 class="card-title">
+          <span class="material-icons text-blue-600">pie_chart</span>
+          Policy Distribution &amp; Value
+        </h3>
+      </div>
+      <div class="breakdown-list">
+        <div *ngFor="let item of dashboard.statusBreakdown" class="breakdown-item" (click)="navigateToPolicies(item.status)">
+          <div class="breakdown-info">
+            <span class="badge" [ngClass]="getStatusClass(item.status)">{{ item.status }}</span>
+            <span class="breakdown-count font-semibold">{{ item.count }} {{ item.count === 1 ? 'policy' : 'policies' }}</span>
+          </div>
+          <div class="breakdown-premium-wrapper">
+            <span class="breakdown-premium">{{ formatCurrency(item.totalPremium) }}</span>
+            <span class="material-icons arrow-icon">chevron_right</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expiring Soon Panel -->
+    <div class="card premium-card expiring-panel">
+      <div class="panel-header">
+        <h3 class="card-title">
+          <span class="material-icons text-amber-500">warning_amber</span>
+          Action Required: Expiring (30 Days)
+        </h3>
+        <a
+        routerLink="/policies"
+        [queryParams]="{status: 'Expiring Soon'}"
+        class="btn-expiring-view">
+        <span class="material-icons">visibility</span>
+        View All Expiring
+        </a>
+      </div>
+      <div *ngIf="expiringPolicies.length === 0" class="empty-state-compact">
+        <span class="material-icons text-slate-300">task_alt</span>
+        <p>No policies currently expiring within 30 days.</p>
+      </div>
+      <div *ngFor="let p of expiringPolicies" class="expiring-item" (click)="viewPolicy(p.policyNumber)">
+        <div class="exp-pet">
+          <div class="pet-avatar-mini">{{ p.petType === 'Dog' ? '🐕' : '🐈' }}</div>
+          <div>
+            <div class="pet-name font-bold text-slate-800">{{ p.petName }} <span class="customer-tag">({{ p.customerName }})</span></div>
+            <div class="policy-no font-mono">{{ p.policyNumber }}</div>
+          </div>
+        </div>
+        <div class="exp-action-group">
+          <div class="exp-date">Expires {{ formatDate(p.endDate) }}</div>
+          <button class="btn btn-renew-pill" [routerLink]="['/policies', p.policyNumber, 'renew']" [state]="{ policy: p}">
+            Renew Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Policies Table -->
+  <div class="card premium-card recent-policies">
+    <div class="panel-header">
+      <h3 class="card-title">
+        <span class="material-icons text-blue-600">table_chart</span>
+        Recent Policy Underwriting
+      </h3>
+      <a routerLink="/policies" class="btn-expiring-view">Explore Full Portfolio →</a>
+    </div>
+    <div class="table-container">
+      <table class="premium-table">
+        <thead>
+          <tr>
+            <th>Policy #</th>
+            <th>Policyholder</th>
+            <th>Insured Pet</th>
+            <th>Expiration Date</th>
+            <th>Annual Premium</th>
+            <th>Status</th>
+            <th class="text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of recentPolicies" (click)="viewPolicy(p.policyNumber)">
+            <td><span class="policy-badge-link">{{ p.policyNumber }}</span></td>
+            <td>
+              <div class="user-cell">
+                <span class="user-primary font-semibold text-slate-800">{{ p.customerName }}</span>
+                <span class="user-secondary text-slate-400 text-xs">{{ p.customerEmail }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="pet-cell-styled">
+                <span class="pet-icon-emoji">{{ p.petType === 'Dog' ? '🐕' : '🐈' }}</span>
+                <div>
+                  <span class="pet-name-primary font-semibold">{{ p.petName }}</span>
+                  <span class="pet-breed-secondary text-xs text-slate-400">{{ p.breed }}</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="date-chip">{{ formatDate(p.endDate) }}</span></td>
+            <td><strong class="premium-text font-bold text-slate-800">{{ formatCurrency(p.premium) }}</strong></td>
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(p.status)">
+                <span class="badge-dot"></span>
+                {{ p.status }}
+              </span>
+            </td>
+            <td class="text-right" (click)="$event.stopPropagation()">
+              <button class="btn btn-outline-clean btn-sm" (click)="viewPolicy(p.policyNumber)">
+                <span class="material-icons text-sm">visibility</span>
+                View
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

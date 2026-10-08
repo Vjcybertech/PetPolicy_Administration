@@ -1,0 +1,277 @@
+<div class="policy-detail-page">
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-error">
+    <span class="material-icons">error_outline</span>
+    <span>{{ error }}</span>
+    <button class="btn btn-outline btn-sm ml-auto" (click)="goBack()">Back to Policies</button>
+  </div>
+
+  <ng-container *ngIf="policy">
+    <!-- Header with Quick Action Bar -->
+    <div class="detail-header card premium-card">
+      <div class="header-left">
+        <button class="back-btn" (click)="goBack()" title="Back to Policy List">
+          <span class="material-icons">arrow_back</span>
+        </button>
+        <div>
+          <div class="policy-title-row">
+            <h2 class="policy-number font-mono">{{ policy.policyNumber }}</h2>
+            <span class="badge" [ngClass]="getStatusClass(policy.status)">
+              <span class="badge-dot"></span>
+              {{ policy.status }}
+            </span>
+          </div>
+          <div class="policy-meta-row text-xs text-slate-500">
+            <span>Quote Ref: <strong class="text-slate-700 font-mono">{{ policy.quoteId }}</strong></span>
+            <span>•</span>
+            <span>Insured: <strong class="text-slate-700">{{ policy.petName }} ({{ policy.petType }})</strong></span>
+            <span>•</span>
+            <span>Customer: <strong class="text-slate-700">{{ policy.customerName }}</strong></span>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" (click)="openEditModal()" title="Edit customer email, phone or payment frequency">
+          <span class="material-icons">edit</span>
+          Edit Policy
+        </button>
+        <button class="btn btn-outline" (click)="exportSummary()" title="Download Excel report">
+          <span class="material-icons">file_download</span>
+          Export Report
+        </button>
+        <button
+          class="btn btn-success"
+          (click)="renewPolicy()"
+          [disabled]="!canRenew()"
+          [title]="canRenew() ? 'Renew this policy' : 'Renewal only available for Active or Expiring Soon policies'"
+        >
+          <span class="material-icons">autorenew</span>
+          Renew Policy
+        </button>
+        <button
+          class="btn btn-danger"
+          (click)="cancelPolicy()"
+          [disabled]="!canCancel()"
+          [title]="canCancel() ? 'Cancel this policy' : 'Cannot cancel an expired or already cancelled policy'"
+        >
+          <span class="material-icons">block</span>
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Renewal Notification Banner (If Expiring Soon) -->
+    <div *ngIf="getStatusClass(policy.status) === 'badge-expiring'" class="renewal-banner">
+      <div class="banner-left">
+        <span class="material-icons text-amber-500">alarm</span>
+        <div>
+          <strong>Policy Expiring Soon</strong>
+          <p>This policy expires on {{ formatDate(policy.endDate) }}. You can renew this policy now to extend coverage.</p>
+        </div>
+      </div>
+      <button class="btn btn-success btn-sm" (click)="renewPolicy()">
+        <span class="material-icons text-sm">autorenew</span> Renew Now
+      </button>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="tabs">
+      <button class="tab-btn" [class.active]="activeTab === 'summary'" (click)="activeTab = 'summary'">
+        <span class="material-icons text-sm">description</span> Summary
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'pet'" (click)="activeTab = 'pet'">
+        <span class="material-icons text-sm">pets</span> Pet Profile
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'coverage'" (click)="activeTab = 'coverage'">
+        <span class="material-icons text-sm">shield</span> Coverages ({{ policy.coverages.length }})
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'transactions'" (click)="activeTab = 'transactions'">
+        <span class="material-icons text-sm">history</span> Audit Log ({{ policy.transactions.length }})
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'renewals'" (click)="activeTab = 'renewals'">
+        <span class="material-icons text-sm">autorenew</span> Renewals ({{ policy.renewals.length }})
+      </button>
+    </div>
+
+    <!-- TAB: Summary -->
+    <div *ngIf="activeTab === 'summary'" class="tab-content">
+      <div class="grid-2">
+        <div class="card premium-card info-section">
+          <h3 class="section-title">
+            <span class="material-icons text-blue-600">person</span> Customer / Policyholder
+          </h3>
+          <div class="info-row"><span>Full Name</span><strong class="text-slate-800">{{ policy.customerName }}</strong></div>
+          <div class="info-row"><span>Email Address</span><strong class="text-slate-800">{{ policy.customerEmail }}</strong></div>
+          <div class="info-row"><span>Phone Number</span><strong class="text-slate-800">{{ policy.customerPhone }}</strong></div>
+          <div class="info-row"><span>Customer ID</span><strong class="font-mono text-slate-600">{{ policy.customerId }}</strong></div>
+        </div>
+
+        <div class="card premium-card info-section">
+          <h3 class="section-title">
+            <span class="material-icons text-blue-600">receipt_long</span> Policy Contract Terms
+          </h3>
+          <div class="info-row"><span>Policy Number</span><strong class="font-mono text-blue-600 font-bold">{{ policy.policyNumber }}</strong></div>
+          <div class="info-row"><span>Originating Quote</span><strong class="font-mono text-slate-600">{{ policy.quoteId }}</strong></div>
+          <div class="info-row"><span>Effective Start Date</span><strong class="text-slate-800">{{ formatDate(policy.startDate) }}</strong></div>
+          <div class="info-row"><span>Term Expiration Date</span><strong class="text-slate-800 font-bold">{{ formatDate(policy.endDate) }}</strong></div>
+          <div class="info-row"><span>Annual Written Premium</span><strong class="text-slate-900 font-black text-base">{{ formatCurrency(policy.premium) }}</strong></div>
+          <div class="info-row"><span>Payment Frequency</span><span class="freq-tag">{{ policy.paymentFrequency }}</span></div>
+          <div class="info-row"><span>Current Status</span><span class="badge" [ngClass]="getStatusClass(policy.status)"><span class="badge-dot"></span>{{ policy.status }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Pet Info -->
+    <div *ngIf="activeTab === 'pet'" class="tab-content">
+      <div class="card premium-card info-section pet-card">
+        <div class="pet-hero">
+          <div class="pet-avatar-large">{{ policy.petType === 'Dog' ? '🐕' : '🐈' }}</div>
+          <div class="pet-hero-info">
+            <h3 class="text-xl font-bold text-slate-900">{{ policy.petName }}</h3>
+            <p class="text-sm text-slate-500">{{ policy.breed }} • {{ policy.age }} Year{{ policy.age !== 1 ? 's' : '' }} Old</p>
+          </div>
+        </div>
+        <div class="grid-2 mt-4 pt-4 border-t border-slate-100">
+          <div class="info-row"><span>Species</span><strong class="text-slate-800">{{ policy.petType }}</strong></div>
+          <div class="info-row"><span>Breed</span><strong class="text-slate-800">{{ policy.breed }}</strong></div>
+          <div class="info-row"><span>Age</span><strong class="text-slate-800">{{ policy.age }} years</strong></div>
+          <div class="info-row"><span>Pet Registry ID</span><strong class="font-mono text-slate-600">{{ policy.petId }}</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Coverage Details -->
+    <div *ngIf="activeTab === 'coverage'" class="tab-content">
+      <div *ngIf="policy.coverages.length === 0" class="empty-state">
+        <span class="material-icons text-slate-300">shield</span>
+        <p>No coverage schedules found for this policy.</p>
+      </div>
+      <div *ngFor="let cov of policy.coverages" class="card premium-card coverage-card">
+        <div class="coverage-header">
+          <h3>
+            <span class="material-icons text-emerald-600">health_and_safety</span>
+            {{ cov.coverageType }} Plan
+          </h3>
+        </div>
+        <div class="grid-3">
+          <div class="coverage-metric-card">
+            <label>Annual Coverage Limit</label>
+            <strong class="text-blue-600">{{ formatCurrency(cov.annualLimit) }}</strong>
+            <span class="metric-note">Per policy term</span>
+          </div>
+          <div class="coverage-metric-card">
+            <label>Annual Deductible</label>
+            <strong class="text-slate-800">{{ formatCurrency(cov.deductible) }}</strong>
+            <span class="metric-note">Before reimbursement</span>
+          </div>
+          <div class="coverage-metric-card">
+            <label>Reimbursement Percentage</label>
+            <strong class="text-emerald-600">{{ cov.reimbursementPct }}%</strong>
+            <span class="metric-note">Covered eligible claims</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Transactions (Audit Log) -->
+    <div *ngIf="activeTab === 'transactions'" class="tab-content">
+      <div class="card premium-card">
+        <div *ngIf="policy.transactions.length === 0" class="empty-state">
+          <span class="material-icons text-slate-300">receipt_long</span>
+          <p>No transaction history recorded yet.</p>
+        </div>
+        <div *ngIf="policy.transactions.length > 0" class="table-container">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Tx #</th>
+                <th>Transaction Type</th>
+                <th>Effective Timestamp</th>
+                <th>Audit Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of policy.transactions">
+                <td><span class="font-mono font-bold text-slate-600">#{{ t.transactionId }}</span></td>
+                <td><span class="tx-badge">{{ t.transactionType }}</span></td>
+                <td><span class="text-slate-700">{{ formatDate(t.effectiveDate) }}</span></td>
+                <td class="notes-cell">{{ t.notes }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Renewal History -->
+    <div *ngIf="activeTab === 'renewals'" class="tab-content">
+      <div class="card premium-card">
+        <div *ngIf="policy.renewals.length === 0" class="empty-state">
+          <h3>No Renewal History</h3>
+          <p>This policy has not undergone term renewal yet.</p>
+          <button class="btn btn-success btn-sm mt-2" (click)="renewPolicy()" [disabled]="!canRenew()">
+            <span class="material-icons text-sm">autorenew</span> Renew Policy Term
+          </button>
+        </div>
+        <div *ngIf="policy.renewals.length > 0" class="table-container">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Renewal ID</th>
+                <th>Executed Date</th>
+                <th>Previous End</th>
+                <th>New Effective Term</th>
+                <th>Previous Premium</th>
+                <th>Renewed Premium</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of policy.renewals">
+                <td><span class="font-mono font-bold text-slate-700">#{{ r.renewalId }}</span></td>
+                <td>{{ formatDate(r.renewalDate) }}</td>
+                <td>{{ formatDate(r.previousEndDate) }}</td>
+                <td><span class="font-semibold">{{ formatDate(r.newStartDate) }} &rarr; {{ formatDate(r.newEndDate) }}</span></td>
+                <td>{{ formatCurrency(r.previousPremium) }}</td>
+                <td><strong class="text-emerald-700 font-bold">{{ formatCurrency(r.newPremium) }}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Edit Policy Details Modal -->
+  <div *ngIf="showEditModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><span class="material-icons text-blue-600">edit</span> Edit Policy Details</h3>
+        <button class="close-btn" (click)="closeEditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Customer Email</label>
+          <input type="email" [(ngModel)]="editCustomerEmail" placeholder="customer@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Customer Phone (10 Digits)</label>
+          <input type="text" [(ngModel)]="editCustomerPhone" placeholder="5550192345" />
+        </div>
+        <div class="form-group">
+          <label>Payment Frequency</label>
+          <select [(ngModel)]="editPaymentFrequency">
+            <option value="Annual">Annual</option>
+            <option value="Monthly">Monthly</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="savePolicyChanges()" [disabled]="updating">
+          <span *ngIf="updating" class="spinner-sm"></span>
+          {{ updating ? 'Saving Changes...' : 'Save Changes' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
