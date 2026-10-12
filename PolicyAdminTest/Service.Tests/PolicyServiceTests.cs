@@ -39,33 +39,6 @@ namespace PolicyAdmin.Tests.Services
                 async () => await _service.CreatePolicyAsync(dto));
         }
 
-        [Test]
-        public void CreatePolicy_DuplicatePolicyNumber_ShouldThrow()
-        {
-            _context.Quotes.Add(new Quote
-            {
-                QuoteId = "Q001",
-                Status = "Approved"
-            });
-
-            _context.Policies.Add(new Policy
-            {
-                PolicyNumber = "POL001"
-            });
-
-            _context.SaveChanges();
-
-            var dto = new CreatePolicyDto
-            {
-                QuoteId = "Q001",
-                PolicyNumber = "POL001",
-                StartDate = DateTime.Today,
-                EndDate = DateTime.Today.AddYears(1)
-            };
-
-            Assert.ThrowsAsync<InvalidOperationException>(
-                async () => await _service.CreatePolicyAsync(dto));
-        }
 
         [Test]
         public void CreatePolicy_UnapprovedQuote_ShouldThrow()
@@ -81,7 +54,7 @@ namespace PolicyAdmin.Tests.Services
             var dto = new CreatePolicyDto
             {
                 QuoteId = "Q002",
-                PolicyNumber = "POL100",
+                
                 StartDate = DateTime.Today,
                 EndDate = DateTime.Today.AddYears(1)
             };
@@ -104,7 +77,7 @@ namespace PolicyAdmin.Tests.Services
             var dto = new CreatePolicyDto
             {
                 QuoteId = "Q003",
-                PolicyNumber = "POL200",
+                
                 StartDate = DateTime.Today,
                 EndDate = DateTime.Today.AddDays(-1)
             };
@@ -140,7 +113,7 @@ namespace PolicyAdmin.Tests.Services
             var dto = new CreatePolicyDto
             {
                 QuoteId = "Q004",
-                PolicyNumber = "POL300",
+                
                 StartDate = DateTime.Today
                 // EndDate intentionally omitted
             };

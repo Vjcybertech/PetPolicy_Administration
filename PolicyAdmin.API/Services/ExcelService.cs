@@ -264,6 +264,8 @@ namespace PolicyAdmin.API.Services
                     Notes = "Imported from Excel workbook"
                 });
 
+                quote.Status = "Converted";
+
                 _context.Policies.Add(policy);
 
                 importedCount++;
