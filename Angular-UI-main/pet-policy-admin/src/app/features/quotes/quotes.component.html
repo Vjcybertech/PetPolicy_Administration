@@ -2,37 +2,10 @@
   <div class="page-header">
     <h2>🏷️ Quotes Management</h2>
     <div class="header-actions">
-      <button class="btn btn-primary" (click)="openNewQuoteModal()">
-        <span class="material-icons">add</span>
-        Generate New Quote
-      </button>
+      
     </div>
   </div>
 
-  <!-- Filter Card -->
-  <div class="card filters-card">
-    <div class="filters-row">
-      <div class="search-box">
-        <span class="material-icons">search</span>
-        <input
-          type="text"
-          placeholder="Search quotes by ID, customer, or pet..."
-          [(ngModel)]="searchTerm"
-          (input)="applyFilter()"
-        />
-      </div>
-      <div class="filter-group">
-        <label>Quote Status</label>
-        <select [(ngModel)]="selectedStatus" (change)="loadQuotes()">
-          <option value="">All Statuses</option>
-          <option value="Approved">Approved</option>
-          <option value="Converted">Converted</option>
-          <option value="Expired">Expired</option>
-          <option value="Pending">Pending</option>
-        </select>
-      </div>
-    </div>
-  </div>
 
   <!-- Error Alert -->
   <div *ngIf="error" class="alert alert-error">

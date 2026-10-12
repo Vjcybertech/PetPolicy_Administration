@@ -51,7 +51,7 @@ export class DashboardComponent implements OnInit {
   }
 
   loadRecentPolicies(): void {
-    this.policyService.getPolicies(undefined, 1, 6).subscribe({
+    this.policyService.getPolicies(undefined, 1, 3).subscribe({
       next: (data) => {
         this.recentPolicies = data;
         this.cdr.detectChanges();

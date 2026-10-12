@@ -31,11 +31,10 @@
           (keyup.enter)="lookupQuote()"
         />
       </div>
-      <button class="btn btn-primary" (click)="lookupQuote()" [disabled]="quoteLookupLoading">
-        <span *ngIf="quoteLookupLoading" class="spinner-sm"></span>
-        <span class="material-icons" *ngIf="!quoteLookupLoading">search</span>
-        {{ quoteLookupLoading ? 'Looking up...' : 'Look Up Quote' }}
-      </button>
+      <button class="btn btn-primary" (click)="lookupQuote()">
+  <span class="material-icons">search</span>
+  Look Up Quote
+</button>
     </div>
 
     <div *ngIf="quoteLookupError" class="alert alert-error">

@@ -2,17 +2,17 @@
   <!-- Page Header -->
   <div class="page-header">
     <div>
-      <h2>Policy Portfolio Administration</h2>
+      <h2>Pet Policy Administration</h2>
       <p class="subtitle">Search, filter, view and manage all pet insurance policies </p>
     </div>
     <div class="header-actions">
       <button class="btn btn-outline" (click)="openImportModal()">
         <span class="material-icons">upload_file</span>
-        Import Excel
+        Import Excel Policies
       </button>
       <button class="btn btn-outline" (click)="exportToExcel()">
         <span class="material-icons">file_download</span>
-        Export Portfolio
+        Export All Policies
       </button>
       <button class="btn btn-primary" routerLink="/create-policy">
         <span class="material-icons">add_circle</span>
@@ -34,12 +34,7 @@
         />
         <button *ngIf="searchTerm" class="clear-search" (click)="searchTerm = ''; onSearchChange()">&times;</button>
       </div>
-      <!-- <div class="filter-group">
-        <label>Status Filter</label>
-        <select [(ngModel)]="selectedStatus" (change)="onFilterChange()">
-          <option *ngFor="let s of statusOptions" [value]="s.value">{{ s.label }}</option>
-        </select>
-      </div> -->
+    
     </div>
 
     <!-- Quick Status Pill Tabs -->

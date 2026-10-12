@@ -27,7 +27,7 @@
     <div class="summary-card total" (click)="navigateToPolicies()">
       <div class="card-icon"><span class="material-icons">folder_open</span></div>
       <div class="card-body">
-        <span class="card-label">Total Portfolio</span>
+        <span class="card-label">Total Policies</span>
         <span class="card-value">{{ dashboard.totalPolicies }}</span>
         <span class="card-hint">All records</span>
       </div>
@@ -69,7 +69,7 @@
       <div class="card-body">
         <span class="card-label">Written Premium</span>
         <span class="card-value premium-value">{{ formatCurrency(dashboard.totalWrittenPremium) }}</span>
-        <span class="card-hint text-purple-600 font-medium">Annualized total</span>
+        <span class="card-hint text-purple-600 font-medium">Annualized total Premium</span>
       </div>
     </div>
   </div>
@@ -141,7 +141,7 @@
         <span class="material-icons text-blue-600">table_chart</span>
         Recent Policy Underwriting
       </h3>
-      <a routerLink="/policies" class="btn-expiring-view">Explore Full Portfolio →</a>
+      <a routerLink="/policies" class="btn-expiring-view">View All Policies →</a>
     </div>
     <div class="table-container">
       <table class="premium-table">
@@ -162,7 +162,7 @@
             <td>
               <div class="user-cell">
                 <span class="user-primary font-semibold text-slate-800">{{ p.customerName }}</span>
-                <span class="user-secondary text-slate-400 text-xs">{{ p.customerEmail }}</span>
+                
               </div>
             </td>
             <td>

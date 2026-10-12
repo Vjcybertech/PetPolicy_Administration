@@ -12,7 +12,7 @@ export class App {
   navItems = [
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
     { label: 'Policies', icon: 'policy', route: '/policies' },
-    { label: 'Quotes', icon: 'request_quote', route: '/quotes' },
+    // { label: 'Quotes', icon: 'request_quote', route: '/quotes' },
     { label: 'Create Policy', icon: 'add_circle', route: '/create-policy' },
   ];
   sidebarOpen = true;

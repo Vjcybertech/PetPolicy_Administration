@@ -6,6 +6,7 @@ import { PolicyService } from '../../services/policy.service';
 import { ToastService } from '../../services/toast.service';
 import { QuoteDto } from '../../models/quote.model';
 import { PolicyDto } from '../../models/policy.model';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-create-policy',
@@ -27,7 +28,7 @@ export class CreatePolicyComponent implements OnInit {
   createdPolicy: PolicyDto | null = null;
 
   coverageTypes = ['Comprehensive', 'Accident Only', 'Wellness', 'Illness Only'];
-  paymentFrequencies = ['Annual', 'Monthly', 'Quarterly', 'Semi-Annual'];
+  paymentFrequencies = ['Annual', 'Monthly'];
 
   constructor(
     private fb: FormBuilder,
@@ -35,7 +36,8 @@ export class CreatePolicyComponent implements OnInit {
     private policyService: PolicyService,
     private toastService: ToastService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+      private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -63,14 +65,14 @@ export class CreatePolicyComponent implements OnInit {
       this.quoteLookupError = 'Please enter a quote ID.';
       return;
     }
-    this.quoteLookupLoading = true;
+    
     this.quoteLookupError = '';
     this.quote = null;
 
     this.quoteService.getQuoteById(this.quoteId.trim()).subscribe({
       next: (q) => {
         this.quote = q;
-        this.quoteLookupLoading = false;
+        
         if (q.status !== 'Approved') {
           this.quoteLookupError = `This quote has status "${q.status}" and is not eligible for policy creation. Only Approved quotes can be used.`;
           this.quote = null;
@@ -89,11 +91,12 @@ export class CreatePolicyComponent implements OnInit {
             endDate: nextYear.toISOString().slice(0, 10)
           });
           this.step = 'form';
+          this.cdr.detectChanges();
         }
       },
       error: (err) => {
         this.quoteLookupError = `Quote "${this.quoteId}" not found. Please check the quote number and try again.`;
-        this.quoteLookupLoading = false;
+        
       }
     });
   }
