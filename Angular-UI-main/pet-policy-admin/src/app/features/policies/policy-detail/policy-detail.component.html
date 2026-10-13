@@ -30,12 +30,20 @@
           </div>
         </div>
       </div>
+      
       <div class="header-actions">
         <button class="btn btn-outline" (click)="openEditModal()" title="Edit customer email, phone or payment frequency">
           <span class="material-icons">edit</span>
           Edit Policy
         </button>
-        
+        <button
+          class="btn btn-primary"
+          (click)="downloadPolicySummary()"
+          title="Download Policy Summary"
+        >
+          <span class="material-icons">download</span>
+          Download Summary
+        </button>
         <button
           class="btn btn-success"
           (click)="renewPolicy()"

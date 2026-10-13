@@ -177,8 +177,21 @@ namespace PolicyAdmin.API.Services
                 throw new InvalidOperationException($"Renewal allowed only within 30 days of expiration. Current remaining days: {daysToExpiration}.");
 
             var previousEndDate = policy.EndDate;
-            var newStartDate = previousEndDate;
-            var newEndDate = newStartDate.AddYears(dto.ExtensionYears > 0 ? dto.ExtensionYears : 1);
+            var newStartDate = previousEndDate.AddDays(1);
+
+            var totalMonths = (dto.ExtensionYears * 12) + dto.ExtensionMonths;
+
+            if (totalMonths <= 0)
+            {
+                throw new InvalidOperationException(
+                    "Renewal period must be at least 1 month."
+                );
+            }
+
+            var newEndDate = newStartDate
+                .AddYears(dto.ExtensionYears)
+                .AddMonths(dto.ExtensionMonths)
+                .AddDays(-1);
 
             var previousPremium = policy.Premium;
             var newPremium = dto.ProposedPremium > 0 ? dto.ProposedPremium : previousPremium;

@@ -74,7 +74,8 @@ namespace PolicyAdmin.API.DTOs
     public class RenewPolicyDto
     {
         public decimal ProposedPremium { get; set; }
-        public int ExtensionYears { get; set; } = 1;
+        public int ExtensionYears { get; set; }
+        public int ExtensionMonths { get; set; } 
         public string Notes { get; set; } = "Standard annual policy renewal";
     }
 

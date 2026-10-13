@@ -33,7 +33,8 @@ export class RenewPolicyComponent implements OnInit {
     this.policyNumber = this.route.snapshot.paramMap.get('policyNumber') || '';
     this.renewForm = this.fb.group({
       proposedPremium: ['', [Validators.required, Validators.min(0.01)]],
-      extensionYears: [1, [Validators.required, Validators.min(1), Validators.max(5)]],
+      extensionYears: [0, [Validators.required, Validators.min(0), Validators.max(5)]],
+       extensionMonths: [0, [Validators.required, Validators.min(0), Validators.max(11)]],
       notes: ['Standard annual policy renewal']
     });
 
@@ -78,24 +79,52 @@ export class RenewPolicyComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.renewForm.invalid) return;
-    this.submitting = true;
-    this.error = '';
-    const dto = this.renewForm.value;
-    this.policyService.renewPolicy(this.policyNumber, dto).subscribe({
-      next: (renewed) => {
-        this.renewedPolicy = renewed;
-        this.successMessage = `Policy ${this.policyNumber} has been successfully renewed!`;
-        this.submitting = false;
-        this.toastService.success(`Policy ${this.policyNumber} renewed!`);
-      },
-      error: (err) => {
-        this.error = err?.error?.message || 'Renewal failed. Please try again.';
-        this.submitting = false;
-        this.toastService.error('Renewal failed.');
-      }
-    });
+
+  const years = Number(this.renewForm.value.extensionYears) || 0;
+  const months = Number(this.renewForm.value.extensionMonths) || 0;
+
+  if (years === 0 && months === 0) {
+    this.toastService.error(
+      'Please select a valid renewal period. Years and Months both cannot be 0.'
+    );
+    return;
   }
+
+  if (this.renewForm.invalid) {
+    return;
+  }
+
+  this.submitting = true;
+  this.error = '';
+
+  const dto = this.renewForm.value;
+
+  this.policyService.renewPolicy(this.policyNumber, dto).subscribe({
+    next: (renewed) => {
+      this.renewedPolicy = renewed;
+      this.successMessage =
+        `Policy ${this.policyNumber} has been successfully renewed!`;
+
+      this.submitting = false;
+
+      this.toastService.success(
+        `Policy ${this.policyNumber} renewed!`
+      );
+    },
+
+    error: (err) => {
+      this.error =
+        err?.error?.message ||
+        'Renewal failed. Please try again.';
+
+      this.submitting = false;
+
+      this.toastService.error(
+        this.error
+      );
+    }
+  });
+}
 
   viewPolicy(): void {
     this.router.navigate(['/policies', this.policyNumber]);

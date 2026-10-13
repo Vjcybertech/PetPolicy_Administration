@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PolicyService } from '../../../services/policy.service';
 import { ToastService } from '../../../services/toast.service';
 import { PolicyDto } from '../../../models/policy.model';
+import jsPDF from 'jspdf';
 
 @Component({
   selector: 'app-policy-detail',
@@ -66,6 +67,109 @@ export class PolicyDetailComponent implements OnInit {
       this.showEditModal = true;
     }
   }
+
+
+  downloadPolicySummary(): void {
+  if (!this.policy) {
+    return;
+  }
+
+  const doc = new jsPDF();
+
+  let y = 20;
+
+  doc.setFontSize(18);
+  doc.text('Pet Insurance Policy Summary', 20, y);
+
+  y += 15;
+
+  doc.setFontSize(12);
+
+  doc.text(`Policy Number: ${this.policy.policyNumber}`, 20, y);
+  y += 10;
+
+  doc.text(`Status: ${this.policy.status}`, 20, y);
+  y += 10;
+
+  doc.text(`Customer Name: ${this.policy.customerName}`, 20, y);
+  y += 10;
+
+  doc.text(`Customer Email: ${this.policy.customerEmail}`, 20, y);
+  y += 10;
+
+  doc.text(`Customer Phone: ${this.policy.customerPhone}`, 20, y);
+  y += 10;
+
+  doc.text(`Customer ID: ${this.policy.customerId}`, 20, y);
+  y += 15;
+
+  doc.setFontSize(14);
+  doc.text('Pet Information', 20, y);
+
+  y += 10;
+
+  doc.setFontSize(12);
+  doc.text(`Pet Name: ${this.policy.petName}`, 20, y);
+  y += 10;
+
+  doc.text(`Pet Type: ${this.policy.petType}`, 20, y);
+  y += 10;
+
+  doc.text(`Breed: ${this.policy.breed}`, 20, y);
+  y += 10;
+
+  doc.text(`Age: ${this.policy.age} Years`, 20, y);
+  y += 15;
+
+  doc.setFontSize(14);
+  doc.text('Policy Details', 20, y);
+
+  y += 10;
+
+  doc.setFontSize(12);
+  doc.text(`Premium: ${this.formatCurrency(this.policy.premium)}`, 20, y);
+  y += 10;
+
+  doc.text(`Payment Frequency: ${this.policy.paymentFrequency}`, 20, y);
+  y += 10;
+
+  doc.text(`Start Date: ${this.formatDate(this.policy.startDate)}`, 20, y);
+  y += 10;
+
+  doc.text(`End Date: ${this.formatDate(this.policy.endDate)}`, 20, y);
+  y += 15;
+
+  if (this.policy.coverages?.length) {
+    doc.setFontSize(14);
+    doc.text('Coverage Details', 20, y);
+
+    y += 10;
+
+    doc.setFontSize(12);
+
+    this.policy.coverages.forEach((cov, index) => {
+      doc.text(
+        `${index + 1}. ${cov.coverageType} | Limit: ${this.formatCurrency(cov.annualLimit)}`,
+        20,
+        y
+      );
+
+      y += 8;
+
+      doc.text(
+        `Deductible: ${this.formatCurrency(cov.deductible)} | Reimbursement: ${cov.reimbursementPct}%`,
+        25,
+        y
+      );
+
+      y += 10;
+    });
+  }
+
+  doc.save(`${this.policy.policyNumber}_Summary.pdf`);
+
+  this.toastService.success('Policy PDF downloaded successfully.');
+}
 
   closeEditModal(): void {
     this.showEditModal = false;
@@ -147,7 +251,7 @@ export class PolicyDetailComponent implements OnInit {
   canRenew(): boolean {
     if (!this.policy) return false;
     const s = (this.policy.status || '').toLowerCase().replace(/\s+/g, '');
-    return s === 'expiringsoon' || s ==='active';
+    return s === 'expiringsoon' ;
   }
 
   canCancel(): boolean {

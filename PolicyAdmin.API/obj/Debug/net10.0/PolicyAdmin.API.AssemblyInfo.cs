@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PolicyAdmin.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b6e368da829f853a85c28a942cfdc6beb3c9afee")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d696b2a8b17e0ad63d92e235c69c1a0a05544428")]
 [assembly: System.Reflection.AssemblyProductAttribute("PolicyAdmin.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PolicyAdmin.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

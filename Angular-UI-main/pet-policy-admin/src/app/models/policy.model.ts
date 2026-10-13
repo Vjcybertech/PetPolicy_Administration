@@ -64,6 +64,7 @@ export interface CreatePolicyDto {
 export interface RenewPolicyDto {
   proposedPremium: number;
   extensionYears: number;
+  extensionMonths: number;
   notes: string;
 }
 
