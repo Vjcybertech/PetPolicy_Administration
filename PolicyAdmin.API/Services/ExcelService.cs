@@ -219,7 +219,7 @@ namespace PolicyAdmin.API.Services
                     PolicyNumber = policyNumber,
                     QuoteId = quoteId,
                     CustomerId = row.Cell(4).GetString(),
-                    CustomerName = row.Cell(5).GetString(),
+                    CustomerName = row.Cell(5).GetString(),                                    
                     CustomerEmail = row.Cell(6).GetString(),
                     PetId = row.Cell(7).GetString(),
                     PetName = row.Cell(8).GetString(),
@@ -246,9 +246,13 @@ namespace PolicyAdmin.API.Services
 
                     Status = string.IsNullOrWhiteSpace(row.Cell(14).GetString())
                         ? "Active"
-                        : row.Cell(14).GetString()
-                };
+                        : row.Cell(14).GetString(),
+                        
+                    CustomerPhone = row.Cell(16).GetString()
 
+                    
+                };
+                
                 policy.PolicyCoverages.Add(new PolicyCoverage
                 {
                     CoverageType = "Comprehensive (Imported)",

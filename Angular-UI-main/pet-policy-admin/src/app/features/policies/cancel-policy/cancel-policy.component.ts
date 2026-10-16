@@ -20,6 +20,8 @@ export class CancelPolicyComponent implements OnInit {
   successMessage = '';
   cancelledPolicy: PolicyDto | null = null;
   policyNumber = '';
+  minCancellationDate = new Date().toISOString().split('T')[0];
+  maxCancellationDate = '';
 
   cancellationReasons = [
     'Customer Request',
@@ -58,7 +60,7 @@ export class CancelPolicyComponent implements OnInit {
 
   loadPolicy(): void {
     this.policyService.getPolicyByNumber(this.policyNumber).subscribe({
-      next: (data) => { this.policy = data; this.loading = false; },
+      next: (data) => { this.policy = data; this.maxCancellationDate = data.endDate.split('T')[0];  this.loading = false; },
       error: () => { this.error = 'Policy not found.'; this.loading = false; }
     });
   }

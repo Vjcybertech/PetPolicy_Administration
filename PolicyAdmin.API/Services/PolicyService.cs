@@ -17,6 +17,8 @@ namespace PolicyAdmin.API.Services
 
         public async Task<List<PolicyDto>> GetAllPoliciesAsync(string? status = null,int pageNumber = 1, int pageSize = 10)
         {
+            await RefreshPolicyStatusesAsync();
+            
             var query = _context.Policies
                 .Include(p => p.PolicyCoverages)
                 .Include(p => p.PolicyTransactions)

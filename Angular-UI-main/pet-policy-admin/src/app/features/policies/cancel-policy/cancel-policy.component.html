@@ -59,7 +59,7 @@
         <form [formGroup]="cancelForm" (ngSubmit)="onSubmit()">
           <div class="form-group">
             <label>Cancellation Effective Date *</label>
-            <input type="date" formControlName="cancellationDate" />
+            <input type="date" formControlName="cancellationDate" [min]="minCancellationDate" [max]="maxCancellationDate" />
             <div class="field-error" *ngIf="cancelForm.get('cancellationDate')?.touched && cancelForm.get('cancellationDate')?.invalid">
               Effective date is required.
             </div>
