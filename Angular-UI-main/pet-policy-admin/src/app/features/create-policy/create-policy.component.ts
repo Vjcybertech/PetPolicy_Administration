@@ -27,6 +27,8 @@ export class CreatePolicyComponent implements OnInit {
   submitError = '';
   createdPolicy: PolicyDto | null = null;
 
+  minDate = new Date().toISOString().split('T')[0];
+
   coverageTypes = ['Comprehensive', 'Accident Only', 'Wellness', 'Illness Only'];
   paymentFrequencies = ['Annual', 'Monthly'];
 
@@ -52,6 +54,10 @@ export class CreatePolicyComponent implements OnInit {
       reimbursementPct: ['', [Validators.required, Validators.min(0), Validators.max(100)]]
     });
 
+    this.policyForm.get('startDate')?.valueChanges.subscribe(() => {
+    this.policyForm.get('endDate')?.setValue('');
+  });
+  
     this.route.queryParams.subscribe(params => {
       if (params['quoteId']) {
         this.quoteId = params['quoteId'];
@@ -99,6 +105,10 @@ export class CreatePolicyComponent implements OnInit {
         
       }
     });
+  }
+
+  getMinEndDate(): string {
+    return this.policyForm.get('startDate')?.value || this.minDate;
   }
 
   onSubmit(): void {
